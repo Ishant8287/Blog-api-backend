@@ -15,8 +15,8 @@ app.use(express.json());
 
 //Routes
 app.use("/api/posts", postRoutes);
-// app.use("/api/comments", commentRoutes);
-// app.use("/api/users", userRoutes);
+app.use("/api/comments", commentRoutes);
+app.use("/api/users", userRoutes);
 
 //404 Fallback
 app.use((req, res, next) => {
