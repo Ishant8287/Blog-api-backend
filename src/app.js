@@ -2,6 +2,7 @@ const express = require("express");
 const postRoutes = require("./routes/postRoutes");
 const userRoutes = require("./routes/userRoutes");
 const commentRoutes = require("./routes/commentRoutes");
+const authRoutes = require("./routes/authRoutes");
 const AppError = require("./utils/AppError");
 
 //Create instance
@@ -17,6 +18,7 @@ app.use(express.json());
 app.use("/api/posts", postRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/auth", authRoutes);
 
 //404 Fallback
 app.use((req, res, next) => {

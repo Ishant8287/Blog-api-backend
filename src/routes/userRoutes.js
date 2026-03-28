@@ -1,15 +1,16 @@
 const express = require("express");
 const router = express.Router();
 const userController = require("../controllers/userController");
+const { protect, restrictTo } = require("../middleware/authMiddleware");
 
 router
   .route("/")
-  .get(userController.getAllUsers)
+  .get(protect , userController.getAllUsers)
   .post(userController.createUser);
 router
   .route("/:id")
-  .get(userController.getUser)
-  .patch(userController.updateUser)
-  .delete(userController.deleteUser);
+  .get(protect , userController.getUser)
+  .patch(protect , userController.updateUser)
+  .delete(protect, restrictTo("admin"), userController.deleteUser);
 
 module.exports = router;
