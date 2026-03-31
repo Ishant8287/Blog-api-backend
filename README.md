@@ -1,7 +1,20 @@
 # 🚀 Blog API Backend
 
 A fully functional backend API built using **Node.js, Express, and MongoDB**.
-This project demonstrates real-world backend development including CRUD operations, relationships, filtering, pagination, and structured architecture.
+This project demonstrates real-world backend development, including CRUD operations, relationships, filtering, pagination, and structured architecture.
+
+---
+
+## 🌐 Live Demo
+
+🚀 **Frontend (Vercel)**
+👉 null
+
+⚙️ **Backend API (Render)**
+👉 https://blog-api-backend-1-cdcp.onrender.com
+
+📦 **GitHub Repository**
+👉 https://github.com/Ishant8287/Blog-api-backend
 
 ---
 
