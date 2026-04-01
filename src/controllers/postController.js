@@ -4,7 +4,12 @@ const asyncHandler = require("../utils/asyncHandler");
 
 //Create Posts
 exports.createPost = asyncHandler(async (req, res, next) => {
-  const post = await Post.create(req.body);
+  const { title, content } = req.body;
+  const post = await Post.create({
+    title,
+    content,
+    userId: req.user._id,
+  });
   res.status(201).json({
     status: "success",
     data: post,
@@ -55,18 +60,28 @@ exports.getPost = asyncHandler(async (req, res, next) => {
 
 //Update Post
 exports.updatePost = asyncHandler(async (req, res, next) => {
-  const post = await Post.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  });
+  const post = await Post.findByIdAndUpdate(req.params.id);
 
   if (!post) {
     return next(new AppError("Post NOT found", 404));
   }
 
+  //Ownership check
+  const isOwner = post.userId.toString() === req.user._id.toString();
+  const isAdmin = req.user.role === "admin";
+
+  if (!isOwner && !isAdmin) {
+    return next(new AppError("Not authorized to delete this post", 404));
+  }
+
+  const updatedPost = await Post.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
+
   res.status(200).json({
     status: "success",
-    data: post,
+    data: updatedPost,
   });
 });
 
@@ -77,6 +92,16 @@ exports.deletePost = asyncHandler(async (req, res, next) => {
   if (!post) {
     return next(new AppError("Post not found", 404));
   }
+
+  //Ownership check
+  const isOwner = post.userId.toString() === req.user._id.toString();
+  const isAdmin = req.user.role === "admin";
+
+  if (!isOwner && !isAdmin) {
+    return next(new AppError("Not authorized to delete this post", 404));
+  }
+
+  await Post.findByIdAndDelete(req.params.id);
 
   res.status(204).send();
 });
