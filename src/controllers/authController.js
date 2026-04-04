@@ -5,14 +5,14 @@ const asyncHandler = require("../utils/asyncHandler");
 
 //Access Token -> Generate -> For API access
 const signAccessToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+  return jwt.sign({ id }, process.env.JWT_ACCESS_SECRET, {
     expiresIn: "15m",
   });
 };
 
 //Refresh Token -> for generating new access token when access token expires
 const signRefreshToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+  return jwt.sign({ id }, process.env.JWT_REFRESH_SECRET, {
     expiresIn: "7d",
   });
 };
@@ -101,7 +101,7 @@ exports.refreshToken = asyncHandler(async (req, res, next) => {
   }
 
   //Verify refresh token
-  const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+  const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
 
   //User check
   const user = await User.findById(decoded.id);
@@ -124,7 +124,13 @@ exports.refreshToken = asyncHandler(async (req, res, next) => {
 exports.logout = asyncHandler(async (req, res, next) => {
   const { refreshToken } = req.body;
 
-  const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+  if (!refreshToken) {
+    return res
+      .status(400)
+      .json({ status: "fail", message: "Refresh token required" });
+  }
+
+  const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
 
   const user = await User.findById(decoded.id);
 

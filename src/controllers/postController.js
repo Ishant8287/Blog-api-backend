@@ -10,6 +10,9 @@ exports.createPost = asyncHandler(async (req, res, next) => {
     content,
     userId: req.user._id,
   });
+
+  console.log(post);
+  
   res.status(201).json({
     status: "success",
     data: post,
@@ -60,7 +63,7 @@ exports.getPost = asyncHandler(async (req, res, next) => {
 
 //Update Post
 exports.updatePost = asyncHandler(async (req, res, next) => {
-  const post = await Post.findByIdAndUpdate(req.params.id);
+  const post = await Post.findById(req.params.id);
 
   if (!post) {
     return next(new AppError("Post NOT found", 404));
@@ -87,7 +90,7 @@ exports.updatePost = asyncHandler(async (req, res, next) => {
 
 //Delete post
 exports.deletePost = asyncHandler(async (req, res, next) => {
-  const post = await Post.findByIdAndDelete(req.params.id);
+  const post = await Post.findById(req.params.id);
 
   if (!post) {
     return next(new AppError("Post not found", 404));
