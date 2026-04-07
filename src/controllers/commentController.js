@@ -47,7 +47,7 @@ exports.getAllComments = asyncHandler(async (req, res, next) => {
 
 //Get single comment
 exports.getComment = asyncHandler(async (req, res, next) => {
-  const comment = await Comment.findById(req.params.commentId);
+  const comment = await Comment.findById(req.params.id);
 
   if (!comment) {
     return next(new AppError("Comment NOT found", 404));
@@ -61,7 +61,7 @@ exports.getComment = asyncHandler(async (req, res, next) => {
 
 //Update Comment
 exports.updateComment = asyncHandler(async (req, res, next) => {
-  const comment = await Comment.findById(req.params.commentId);
+  const comment = await Comment.findById(req.params.id);
 
   if (!comment) {
     return next(new AppError("Comment NOT found", 404));
@@ -88,7 +88,7 @@ exports.updateComment = asyncHandler(async (req, res, next) => {
 
 //Delete Comment
 exports.deleteComment = asyncHandler(async (req, res, next) => {
-  const comment = await Comment.findById(req.params.commentId);
+  const comment = await Comment.findById(req.params.id);
 
   if (!comment) {
     return next(new AppError("Comment NOT found", 404));

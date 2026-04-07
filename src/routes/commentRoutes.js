@@ -15,7 +15,7 @@ router
     validate(commentSchema, "body"),
     commentController.createComment,
   );
-console.log(commentController);
+
 // single comment
 router
   .route("/comments/:id")
@@ -31,5 +31,5 @@ router
     validate(idSchema, "params"),
     commentController.deleteComment,
   );
-console.log("idSchema:", idSchema);
-console.log("commentSchema:", commentSchema);
+
+module.exports = router;

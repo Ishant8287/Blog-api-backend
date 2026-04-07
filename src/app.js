@@ -5,7 +5,7 @@ const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 
 //Routes
-const postRoutes = require("./routes/postRoutes");
+const postRoutes = require("./routes/postRoutes");    
 const userRoutes = require("./routes/userRoutes");
 const commentRoutes = require("./routes/commentRoutes");
 const authRoutes = require("./routes/authRoutes");
@@ -63,7 +63,7 @@ app.use("/api/auth", authRoutes);
 
 //404 Fallback
 app.use((req, res, next) => {
-  next(new AppError(`Can't find${req.originalUrl}`, 404));
+  next(new AppError(`Can't find ${req.originalUrl}`, 404));
 });
 
 //Error Middleware
