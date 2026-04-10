@@ -2,6 +2,15 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const asyncHandler = require("../utils/asyncHandler");
+const AppError = require("../utils/AppError");
+
+const verifyToken = (token, secret, errorMessage) => {
+  try {
+    return jwt.verify(token, secret);
+  } catch (error) {
+    throw new AppError(errorMessage, 401);
+  }
+};
 
 //Access Token -> Generate -> For API access
 const signAccessToken = (id) => {
@@ -15,22 +24,19 @@ const signRefreshToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_REFRESH_SECRET, {
     expiresIn: "7d",
   });
-};
+};  
 
 //sign up
 exports.signUp = asyncHandler(async (req, res, next) => {
   //Take all details of user from req.body
-  const { name, email, password, role } = req.body;
+  const { name, email, password } = req.body;
 
   //found user
   const foundUser = await User.findOne({ email });
 
   //Exist -> error
   if (foundUser) {
-    return res.status(400).json({
-      status: "fail",
-      message: "User with this email already exist",
-    });
+    throw new AppError("User with this email already exists", 400);
   }
 
   //Not exist
@@ -38,6 +44,7 @@ exports.signUp = asyncHandler(async (req, res, next) => {
 
   //Remove password from respone
   newUser.password = undefined;
+  newUser.refreshToken = undefined;
 
   //Successfull status
   res.status(201).json({
@@ -52,14 +59,11 @@ exports.loginUser = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
 
   //found user
-  const foundUser = await User.findOne({ email });
+  const foundUser = await User.findOne({ email }).select("+password");
 
   //If not exists
   if (!foundUser) {
-    return res.status(401).json({
-      status: "fail",
-      message: "User NOT found",
-    });
+    throw new AppError("Invalid email or password", 401);
   }
 
   //If exist
@@ -67,10 +71,7 @@ exports.loginUser = asyncHandler(async (req, res, next) => {
 
   //If not match
   if (!isMatch) {
-    return res.status(401).json({
-      status: "fail",
-      message: "Password Incorrect",
-    });
+    throw new AppError("Invalid email or password", 401);
   }
 
   //If match
@@ -94,23 +95,21 @@ exports.refreshToken = asyncHandler(async (req, res, next) => {
 
   //If we don't have refresh token
   if (!refreshToken) {
-    return res.status(401).json({
-      status: "fail",
-      message: "Refresh token required",
-    });
+    throw new AppError("Refresh token required", 401);
   }
 
   //Verify refresh token
-  const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+  const decoded = verifyToken(
+    refreshToken,
+    process.env.JWT_REFRESH_SECRET,
+    "Invalid or expired refresh token",
+  );
 
   //User check
-  const user = await User.findById(decoded.id);
+  const user = await User.findById(decoded.id).select("+refreshToken");
 
   if (!user || user.refreshToken !== refreshToken) {
-    return res.status(401).json({
-      status: "fail",
-      message: "User not found",
-    });
+    throw new AppError("Invalid refresh token", 401);
   }
   const newAccessToken = signAccessToken(user._id);
 
@@ -125,14 +124,16 @@ exports.logout = asyncHandler(async (req, res, next) => {
   const { refreshToken } = req.body;
 
   if (!refreshToken) {
-    return res
-      .status(400)
-      .json({ status: "fail", message: "Refresh token required" });
+    throw new AppError("Refresh token required", 400);
   }
 
-  const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+  const decoded = verifyToken(
+    refreshToken,
+    process.env.JWT_REFRESH_SECRET,
+    "Invalid or expired refresh token",
+  );
 
-  const user = await User.findById(decoded.id);
+  const user = await User.findById(decoded.id).select("+refreshToken");
 
   if (user) {
     user.refreshToken = null;

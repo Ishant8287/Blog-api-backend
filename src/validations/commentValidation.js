@@ -7,10 +7,3 @@ exports.commentSchema = Joi.object({
     "string.max": "Comment is too long",
   }),
 }).required();
-
-exports.idSchema = Joi.object({
-  id: Joi.string().length(24).hex().required().messages({
-    "string.length": "Invalid post Id",
-    "string.hex": "Post Id must be a valid ObjectId",
-  }),
-}).required();

@@ -29,7 +29,7 @@ exports.createComment = asyncHandler(async (req, res, next) => {
 exports.getAllComments = asyncHandler(async (req, res, next) => {
   let filter = {};
 
-  // 🔥 if route is /posts/:id/comments
+  //if route is /posts/:id/comments
   if (req.params.id) {
     filter.postId = req.params.id;
   }

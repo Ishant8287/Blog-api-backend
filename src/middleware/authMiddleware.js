@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const asyncHandler = require("../utils/asyncHandler");
+const AppError = require("../utils/AppError");
 
 // steps
 // 1.request aayi
@@ -24,23 +25,22 @@ exports.protect = asyncHandler(async (req, res, next) => {
 
   //If token not found
   if (!token) {
-    return res.status(401).json({
-      status: "fail",
-      message: "You are not logged in",
-    });
+    return next(new AppError("You are not logged in", 401));
   }
 
   //token verify
-  const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+  } catch (error) {
+    return next(new AppError("Invalid or expired access token", 401));
+  }
 
   //User exist check
   const currentUser = await User.findById(decoded.id);
 
   if (!currentUser) {
-    return res.status(401).json({
-      status: "fail",
-      message: "User no longer exists",
-    });
+    return next(new AppError("User no longer exists", 401));
   }
 
   req.user = currentUser;
@@ -52,10 +52,7 @@ exports.protect = asyncHandler(async (req, res, next) => {
 exports.restrictTo = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
-      return res.status(403).json({
-        status: "fail",
-        message: "You do not have permission",
-      });
+      return next(new AppError("You do not have permission", 403));
     }
     next();
   };

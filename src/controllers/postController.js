@@ -10,8 +10,6 @@ exports.createPost = asyncHandler(async (req, res, next) => {
     content,
     userId: req.user._id,
   });
-
-  console.log(post);
   
   res.status(201).json({
     status: "success",
@@ -27,7 +25,7 @@ exports.getAllPosts = asyncHandler(async (req, res, next) => {
   excludedFields.forEach((el) => delete queryObj[el]);
 
   //2.Sorting
-  let query = Post.find(queryObj).populate("userId");
+  let query = Post.find(queryObj).populate("userId", "name");
   if (req.query.sort) {
     query = query.sort(req.query.sort);
   }
@@ -49,7 +47,7 @@ exports.getAllPosts = asyncHandler(async (req, res, next) => {
 
 //Get Posts
 exports.getPost = asyncHandler(async (req, res, next) => {
-  const post = await Post.findById(req.params.id).populate("userId");
+  const post = await Post.findById(req.params.id).populate("userId", "name");
 
   if (!post) {
     return next(new AppError("Post NOT found", 404));
@@ -74,10 +72,17 @@ exports.updatePost = asyncHandler(async (req, res, next) => {
   const isAdmin = req.user.role === "admin";
 
   if (!isOwner && !isAdmin) {
-    return next(new AppError("Not authorized to delete this post", 404));
+    return next(new AppError("Not authorized to update this post", 403));
   }
 
-  const updatedPost = await Post.findByIdAndUpdate(req.params.id, req.body, {
+  const updates = {};
+  ["title", "content"].forEach((field) => {
+    if (req.body[field] !== undefined) {
+      updates[field] = req.body[field];
+    }
+  });
+
+  const updatedPost = await Post.findByIdAndUpdate(req.params.id, updates, {
     new: true,
     runValidators: true,
   });
@@ -101,7 +106,7 @@ exports.deletePost = asyncHandler(async (req, res, next) => {
   const isAdmin = req.user.role === "admin";
 
   if (!isOwner && !isAdmin) {
-    return next(new AppError("Not authorized to delete this post", 404));
+    return next(new AppError("Not authorized to delete this post", 403));
   }
 
   await Post.findByIdAndDelete(req.params.id);

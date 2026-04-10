@@ -23,3 +23,12 @@ exports.loginSchema = Joi.object({
 
   password: Joi.string().required(),
 });
+
+exports.refreshTokenSchema = Joi.object({
+  refreshToken: Joi.string().trim().required(),
+});
+
+exports.userUpdateSchema = Joi.object({
+  name: Joi.string().min(3).max(50).trim(),
+  email: Joi.string().email().lowercase(),
+}).min(1);

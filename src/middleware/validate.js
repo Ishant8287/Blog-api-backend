@@ -12,6 +12,7 @@ module.exports = (schema, property = "body") => {
         errors,
       });
     }
+    req[property] = value;
     next();
   };
 };

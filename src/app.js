@@ -68,21 +68,48 @@ app.use((req, res, next) => {
 
 //Error Middleware
 app.use((err, req, res, next) => {
-  err.statusCode = err.statusCode || 500;
-  err.status = err.status || "error";
+  let error = err;
+
+  if (error.name === "CastError") {
+    error = new AppError(`Invalid ${error.path}`, 400);
+  } else if (error.code === 11000) {
+    error = new AppError("Duplicate field value entered", 409);
+  } else if (error.name === "ValidationError") {
+    error = new AppError(
+      Object.values(error.errors)
+        .map((item) => item.message)
+        .join(", "),
+      400,
+    );
+  } else if (error.name === "JsonWebTokenError") {
+    error = new AppError("Invalid token. Please log in again.", 401);
+  } else if (error.name === "TokenExpiredError") {
+    error = new AppError("Token expired. Please log in again.", 401);
+  } else if (error.type === "entity.parse.failed") {
+    error = new AppError("Invalid JSON payload", 400);
+  }
+
+  error.statusCode =
+    error.statusCode || (typeof error.status === "number" ? error.status : 500);
+  error.status =
+    typeof error.status === "string"
+      ? error.status
+      : error.statusCode >= 400 && error.statusCode < 500
+        ? "fail"
+        : "error";
 
   if (process.env.NODE_ENV === "development") {
-    return res.status(err.statusCode).json({
-      status: err.status,
-      message: err.message,
-      stack: err.stack,
+    return res.status(error.statusCode).json({
+      status: error.status,
+      message: error.message,
+      stack: error.stack,
     });
   }
 
-  if (err.isOperational) {
-    return res.status(err.statusCode).json({
-      status: err.status,
-      message: err.message,
+  if (error.isOperational) {
+    return res.status(error.statusCode).json({
+      status: error.status,
+      message: error.message,
     });
   }
 

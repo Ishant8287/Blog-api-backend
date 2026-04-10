@@ -11,19 +11,24 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      lowercase: true,
+      trim: true,
     },
     password: {
       type: String,
       required: [true, "Password is required"],
       minlength: [8, "Password must be at least 8 characters long"],
       trim: true,
+      select: false,
     },
     role: {
       type: String,
+      enum: ["user", "admin"],
       default: "user",
     },
     refreshToken: {
       type: String,
+      select: false,
     },
   },
   {
@@ -32,7 +37,7 @@ const userSchema = new mongoose.Schema(
 );
 
 //Mongoose middleware to hash the password
-userSchema.pre("save", async function (next) {
+userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
   this.password = await bcrypt.hash(this.password, 10); // here 10 is salts round
 });

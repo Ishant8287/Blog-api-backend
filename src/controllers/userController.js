@@ -2,12 +2,26 @@ const asyncHandler = require("../utils/asyncHandler");
 const AppError = require("../utils/AppError");
 const User = require("../models/User");
 
+const ensureUserAccess = (req, next, message) => {
+  const isAdmin = req.user.role === "admin";
+  const isSameUser = req.user._id.toString() === req.params.id;
+
+  if (!isAdmin && !isSameUser) {
+    next(new AppError(message, 403));
+    return false;
+  }
+
+  return true;
+};
+
 //Create User
 exports.createUser = asyncHandler(async (req, res, next) => {
-  const user = await User.create(req.body);
+  const { name, email, password, role } = req.body;
+  const user = await User.create({ name, email, password, role });
 
   //Should not shown in response
   user.password = undefined;
+  user.refreshToken = undefined;
 
   res.status(201).json({
     status: "success",
@@ -45,6 +59,10 @@ exports.getAllUsers = asyncHandler(async (req, res, next) => {
 
 //Get single User
 exports.getUser = asyncHandler(async (req, res, next) => {
+  if (!ensureUserAccess(req, next, "Not authorized to access this user")) {
+    return;
+  }
+
   const user = await User.findById(req.params.id);
   if (!user) {
     return next(new AppError("User NOT found", 404));
@@ -58,7 +76,16 @@ exports.getUser = asyncHandler(async (req, res, next) => {
 
 //Update User
 exports.updateUser = asyncHandler(async (req, res, next) => {
-  const { password, role, ...safeFields } = req.body;
+  if (!ensureUserAccess(req, next, "Not authorized to update this user")) {
+    return;
+  }
+
+  const safeFields = {};
+  ["name", "email"].forEach((field) => {
+    if (req.body[field] !== undefined) {
+      safeFields[field] = req.body[field];
+    }
+  });
 
   const user = await User.findByIdAndUpdate(req.params.id, safeFields, {
     new: true,
