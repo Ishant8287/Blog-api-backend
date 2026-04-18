@@ -63,7 +63,7 @@ app.use("/api/auth", authRoutes);
 app.get("/", (req, res) => {
   res.json({
     status: "success",
-    message: "Auth Service API is running",
+    message: "Blog API is running",
   });
 });
 
