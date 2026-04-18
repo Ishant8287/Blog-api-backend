@@ -60,6 +60,12 @@ app.use("/api/posts", postRoutes);
 app.use("/api", commentRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
+app.get("/", (req, res) => {
+  res.json({
+    status: "success",
+    message: "Auth Service API is running",
+  });
+});
 
 //404 Fallback
 app.use((req, res, next) => {
